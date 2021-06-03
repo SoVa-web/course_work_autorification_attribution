@@ -1,24 +1,17 @@
 # -*- coding: utf-8 -*-
-from nltk.util import pr
 import numpy 
 import nltk
-import glob
-import os
 import string
 from array import *
 import csv
-import pandas
-import seaborn
 from sklearn import metrics
-from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.tree import export_graphviz
 from six import StringIO
 from IPython.display import Image
 import pydotplus
+from sklearn.naive_bayes import GaussianNB
 
 #array with file`s index
 filesIndex = ['11', '12', '13', '14', '15', '16', '17', '18',
@@ -100,7 +93,7 @@ x_set_train, x_set_test, y_set_train, y_set_test = train_test_split(x, y, test_s
 
 #create and trainig tree
 
-decisionTree = DecisionTreeClassifier(max_depth=3)
+decisionTree = DecisionTreeClassifier(max_depth=7)
 decisionTree = decisionTree.fit(x_set_train, y_set_train)
 
 #testing tree
@@ -128,4 +121,34 @@ Image(vizTree.create_png())
 
 
 
-# second method
+# second method Bayesian classifier
+
+
+with open('datasetWithMetrics.csv', 'r', encoding='utf-8') as file:
+    data = csv.reader(file, delimiter='~')
+    data = list(map(lambda e: e[0:], data))
+    headers = data.pop(0)[:-1]
+
+    #we divide the dimensions into independent and dependent ones by column names
+
+    x = list(map(lambda x: x[:-1], data))
+    y = [x[-1] for x in data]
+
+#we divide the dataset into training and test data
+
+x_set_train, x_set_test, y_set_train, y_set_test = train_test_split(x, y, test_size=0.25, shuffle = True, random_state = 42 )
+
+#training Gaus model
+
+gnb = GaussianNB()
+gnb.fit(x_set_train, y_set_train)
+y_pred = gnb.predict(x_set_test)
+
+count = 0
+for i in x_set_test :
+    print(i)
+    print(y_pred[count])
+    count+=1
+
+print("Accuracy of Gaus model :", metrics.accuracy_score(y_set_test, y_pred))
+
