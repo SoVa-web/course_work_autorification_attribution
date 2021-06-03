@@ -7,6 +7,18 @@ import os
 import string
 from array import *
 import csv
+import pandas
+import seaborn
+from sklearn import metrics
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.tree import export_graphviz
+from six import StringIO
+from IPython.display import Image
+import pydotplus
 
 #array with file`s index
 filesIndex = ['11', '12', '13', '14', '15', '16', '17', '18',
@@ -15,7 +27,9 @@ filesIndex = ['11', '12', '13', '14', '15', '16', '17', '18',
 
 #create csv file with dataset for analitics
 
-open('datasetWithMetrics.csv', 'w').close()
+with open('datasetWithMetrics.csv', 'w', newline='') as csvfile :
+    filewriter = csv.writer(csvfile, delimiter='~', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    filewriter.writerow(["lexicalDiversity",  "averageNumWord", "author" ])
 for file in filesIndex :
 
     #reading start files
@@ -63,4 +77,55 @@ for file in filesIndex :
 
     with open('datasetWithMetrics.csv', 'a', newline='') as csvfile:
         filewriter = csv.writer(csvfile, delimiter='~', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        filewriter.writerow([file, lexicalDiversity, averageNumChar, averageNumWord, file[0] ])
+        filewriter.writerow([lexicalDiversity,  averageNumWord, file[0] ])
+
+# first method defonotion author of text by using stylistic metrics using the classifier
+
+#learning classification tree
+#read dataset that we created
+
+with open('datasetWithMetrics.csv', 'r', encoding='utf-8') as file:
+    data = csv.reader(file, delimiter='~')
+    data = list(map(lambda e: e[0:], data))
+    headers = data.pop(0)[:-1]
+
+    #we divide the dimensions into independent and dependent ones by column names
+
+    x = list(map(lambda x: x[:-1], data))
+    y = [x[-1] for x in data]
+
+#we divide the dataset into training and test data
+
+x_set_train, x_set_test, y_set_train, y_set_test = train_test_split(x, y, test_size=0.4, shuffle = True, random_state = 42 )
+
+#create and trainig tree
+
+decisionTree = DecisionTreeClassifier(max_depth=3)
+decisionTree = decisionTree.fit(x_set_train, y_set_train)
+
+#testing tree
+#predicting the value of Y on the test data
+prediction = decisionTree.predict(x_set_test)
+decisionTree.predict(list(map(lambda x: x[:-1], data)))
+
+#print result
+count = 0
+for i in x_set_test :
+    print(i)
+    print(prediction[count])
+    count+=1
+
+#accuracy
+print("Accuracy of tree:", metrics.accuracy_score(y_set_test, prediction))
+
+#graphical construction of the tree
+dot_data = StringIO()
+export_graphviz(decisionTree, out_file=dot_data, filled=True, special_characters=True, feature_names=headers, class_names=['0','1'])
+vizTree = pydotplus.graph_from_dot_data(dot_data.getvalue())
+vizTree.write_png('decisionTree.png')
+Image(vizTree.create_png())
+
+
+
+
+# second method
