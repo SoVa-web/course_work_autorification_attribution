@@ -22,7 +22,7 @@ filesIndex = ['11', '12', '13', '14', '15', '16', '17', '18',
 
 with open('datasetWithMetrics.csv', 'w', newline='') as csvfile :
     filewriter = csv.writer(csvfile, delimiter='~', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    filewriter.writerow(["lexicalDiversity",  "averageNumWord", "author" ])
+    filewriter.writerow(["nameFile","lexicalDiversity", "averageNumChar", "averageNumWord", "frequencyComma", "frequencyAnd", "author" ])
 for file in filesIndex :
 
     #reading start files
@@ -68,9 +68,18 @@ for file in filesIndex :
     averageNumWord = numpy.mean(wordNum)
     print("Average length sentences : "+str(averageNumWord))
 
+    #frequency "and"
+    fregNum = nltk.probability.FreqDist(nltk.Text(tokensFile))
+    frequencyAnd = (fregNum["і"] * 1000) / fregNum.N()
+
+    #frequency  comma
+    fregNum = nltk.probability.FreqDist(nltk.Text(tokensFile))
+    frequencyComma = (fregNum[","] * 1000) / fregNum.N()
+
+
     with open('datasetWithMetrics.csv', 'a', newline='') as csvfile:
         filewriter = csv.writer(csvfile, delimiter='~', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        filewriter.writerow([lexicalDiversity,  averageNumWord, file[0] ])
+        filewriter.writerow([file, lexicalDiversity, averageNumChar,  averageNumWord, frequencyComma, frequencyAnd, file[0] ])
 
 # first method defonotion author of text by using stylistic metrics using the classifier
 
